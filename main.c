@@ -6,6 +6,9 @@ void find_ip(Cache* cache) {
     printf("Write DNS: ");
     scanf("%s", dns);
     const char* result = cache_get(cache, dns);
+    if(is_valid_ip(result) == 0) {
+        result = cache_get(cache, result);
+    }
     if(result == NULL)
         printf("No IP found\n");
     else
@@ -20,6 +23,13 @@ void add_ip(Cache* cache) {
     printf("Write IP: ");
     scanf("%s", ip);
     add_dns_entry("dns.txt", dns, ip);
+}
+
+void get_all_ip(Cache* cache) {
+    char* ip;
+    printf("Write IP: ");
+    scanf("%s", ip);
+    print_dns_names_by_ip(cache,ip,"dns.txt");
 }
 
 void write_all_entries(Cache* cache) {
@@ -44,8 +54,8 @@ int main() {
     while(work) {
         int choice;
 
-        printf("\nMenu:\n1 - Find\n2 - Add\n3 - Clear Cache\n4 - Write Cache\n5 - Exit\nYour choice: ");
-        while(scanf("%d", &choice) == 0 || choice < 1 || choice > 5) {
+        printf("\nMenu:\n1 - Find\n2 - Add\n3 - Get all IP\n4 - Clear Cache\n5 - Write Cache\n6 - Exit\nYour choice: ");
+        while(scanf("%d", &choice) == 0 || choice < 1 || choice > 6) {
             printf("\nInvalid choice\nYour choice: ");
             rewind(stdin);
         }
@@ -58,10 +68,13 @@ int main() {
                 add_ip(cache);
                 break;
             case 3:
+                get_all_ip(cache);
+                break;
+            case 4:
                 cache_delete(cache);
                 cache = cache_create();
                 break;
-            case 4:
+            case 5:
                 write_all_entries(cache);
                 break;
             default:
@@ -69,7 +82,6 @@ int main() {
                 break;
         }
     }
-    if(cache != NULL)
-        cache_delete(cache);
+    cache_delete(cache);
     return 0;
 }
