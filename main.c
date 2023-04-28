@@ -2,23 +2,15 @@
 #include <stdio.h>
 
 void find_ip(HashTable* cache) {
-    char* dns;
+    char* dns = NULL;
     printf("Write DNS: ");
     scanf("%s", dns);
-    /*const char* result = hashtable_lookup(cache, dns);
-    if(result != NULL && is_valid_ip(result) == 0) {
-        result = hashtable_lookup(cache, result);
-    }
-    if(result == NULL)
-        printf("No IP found\n");
-    else
-        printf("Found IP: %s", result);*/
     hashtable_lookup(cache, dns);
 }
 
 void add_ip(HashTable* cache) {
-    char* dns;
-    char* ip;
+    char* dns = NULL;
+    char* ip = NULL;
     printf("Write DNS: ");
     scanf("%s", dns);
     printf("Write IP: ");
@@ -27,7 +19,7 @@ void add_ip(HashTable* cache) {
 }
 
 void get_all_ip(HashTable* cache) {
-    char* ip;
+    char* ip = NULL;
     printf("Write IP: ");
     scanf("%s", ip);
     print_dns_names_by_ip(cache,ip,"dns.txt");
