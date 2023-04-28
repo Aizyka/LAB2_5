@@ -1,101 +1,82 @@
 #include "header.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
-Cache* cache_create() {
-    Cache* cache = malloc(sizeof(Cache));
-    cache->size = 0;
-    cache->head = NULL;
-    cache->tail = NULL;
-    return cache;
-}
-
-void cache_delete(Cache* cache) {
-    CacheEntry* current = cache->head;
-    while (current != NULL) {
-        CacheEntry* next = current->next;
-        free(current->key);
-        free(current->value);
-        free(current);
-        current = next;
+unsigned int hash(const char* str, unsigned int seed) {
+    unsigned int hash = seed;
+    while (*str) {
+        hash = hash * 101 + *str++;
     }
-    free(cache);
+    return hash;
 }
 
-void cache_add(Cache* cache, const char* key, const char* value) {
-    // Check if the key is already in the cache
-    CacheEntry* current = cache->head;
+unsigned int hash_function(const char* key, int table_size) {
+    return hash(key, 0) % table_size;
+}
+
+HashTable* hashtable_create() {
+    HashTable* table = malloc(sizeof(HashTable));
+    table->size = MAX_CACHE_SIZE;
+    table->table = malloc(sizeof(HashEntry*) * table->size);
+    for (int i = 0; i < table->size; i++) {
+        table->table[i] = NULL;
+    }
+    return table;
+}
+
+void hashtable_delete(HashTable* table) {
+    for (int i = 0; i < table->size; i++) {
+        HashEntry* current = table->table[i];
+        while (current != NULL) {
+            HashEntry* next = current->next;
+            free(current->key);
+            free(current->value);
+            free(current);
+            current = next;
+        }
+    }
+    free(table->table);
+    free(table);
+}
+
+int internal_lookup(HashTable* table, const char* key) {
+    int founded = 0;
+    unsigned int index = hash_function(key, table->size);
+    HashEntry* current = table->table[index];
     while (current != NULL) {
         if (strcmp(current->key, key) == 0) {
-            // Key already in cache, update value and move to front
-            free(current->value);
-            current->value = strdup(value);
-            if (current != cache->head) {
-                current->prev->next = current->next;
-                if (current == cache->tail) {
-                    cache->tail = current->prev;
-                } else {
-                    current->next->prev = current->prev;
-                }
-                current->prev = NULL;
-                current->next = cache->head;
-                cache->head->prev = current;
-                cache->head = current;
-            }
-            return;
+            if(is_valid_ip(current->value) == 1)
+                printf("Found IP: %s\n", current->value);
+            else
+                hashtable_lookup(table, current->value);
+            founded = 1;
         }
         current = current->next;
     }
-    // Key not in cache, add new entry to front
-    CacheEntry* entry = malloc(sizeof(CacheEntry));
+    return founded;
+}
+
+void hashtable_lookup(HashTable* table, const char* key) {
+
+    if(internal_lookup(table,key) == 0) {
+        search_ip_file(table, "dns.txt", key);
+    }
+    else{
+        return;
+    }
+    internal_lookup(table,key);
+}
+
+void hashtable_add(HashTable* table, const char* key, const char* value) {
+    unsigned int index = hash_function(key, table->size);
+    HashEntry* entry = malloc(sizeof(HashEntry));
     entry->key = strdup(key);
     entry->value = strdup(value);
     entry->prev = NULL;
-    entry->next = cache->head;
-    if (cache->head != NULL) {
-        cache->head->prev = entry;
-    } else {
-        cache->tail = entry;
+    entry->next = table->table[index];
+    if (table->table[index] != NULL) {
+        table->table[index]->prev = entry;
     }
-    cache->head = entry;
-    if (cache->size == MAX_CACHE_SIZE) {
-        // Cache full, remove least recently used entry from tail
-        CacheEntry* to_remove = cache->tail;
-        cache->tail = to_remove->prev;
-        if (cache->tail != NULL) {
-            cache->tail->next = NULL;
-        } else {
-            cache->head = NULL;
-        }
-        free(to_remove->key);
-        free(to_remove->value);
-        free(to_remove);
-    } else {
-        cache->size++;
-    }
-}
-
-char* cache_get(Cache* cache, const char* key) {
-    // Find the key in the cache and move it to front
-    CacheEntry* current = cache->head;
-    while (current != NULL) {
-        if (strcmp(current->key, key) == 0) {
-            if (current != cache->head) {
-                current->prev->next = current->next;
-                if (current == cache->tail) {
-                    cache->tail = current->prev;
-                } else {
-                    current->next->prev = current->prev;
-                }
-                current->prev = NULL;
-                current->next = cache->head;
-                cache->head->prev = current;
-                cache->head = current;
-            }
-            return current->value;
-        }
-        current = current->next;
-    }
-
-    return search_ip_file(cache, "dns.txt", key);
+    table->table[index] = entry;
 }

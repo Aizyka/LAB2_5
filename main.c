@@ -1,21 +1,22 @@
 #include "header.h"
 #include <stdio.h>
 
-void find_ip(Cache* cache) {
+void find_ip(HashTable* cache) {
     char* dns;
     printf("Write DNS: ");
     scanf("%s", dns);
-    const char* result = cache_get(cache, dns);
-    if(is_valid_ip(result) == 0) {
-        result = cache_get(cache, result);
+    /*const char* result = hashtable_lookup(cache, dns);
+    if(result != NULL && is_valid_ip(result) == 0) {
+        result = hashtable_lookup(cache, result);
     }
     if(result == NULL)
         printf("No IP found\n");
     else
-        printf("Found IP: %s", result);
+        printf("Found IP: %s", result);*/
+    hashtable_lookup(cache, dns);
 }
 
-void add_ip(Cache* cache) {
+void add_ip(HashTable* cache) {
     char* dns;
     char* ip;
     printf("Write DNS: ");
@@ -25,31 +26,30 @@ void add_ip(Cache* cache) {
     add_dns_entry("dns.txt", dns, ip);
 }
 
-void get_all_ip(Cache* cache) {
+void get_all_ip(HashTable* cache) {
     char* ip;
     printf("Write IP: ");
     scanf("%s", ip);
     print_dns_names_by_ip(cache,ip,"dns.txt");
 }
 
-void write_all_entries(Cache* cache) {
+void write_all_entries(HashTable* cache) {
 
-    CacheEntry* current = cache->head;
-    if(current == NULL) {
-        printf("No entries in cache\n");
+    printf("\n");
+    HashEntry * current = NULL;
+    for(int i = 0; i < cache->size; i++) {
+        current = cache->table[i];
+        while (current != NULL) {
+            printf("%s %s\n", current->key, current->value);
+            current = current->next;
+        }
     }
-    else {
-        printf("All entries in cache:\n");
-    }
-    while (current != NULL) {
-        printf("%s %s\n", current->key, current->value);
-        current = current->next;
-    }
+
 }
 
 
 int main() {
-    Cache* cache = cache_create();
+    HashTable* cache = hashtable_create();
     int work = 1;
     while(work) {
         int choice;
@@ -71,8 +71,8 @@ int main() {
                 get_all_ip(cache);
                 break;
             case 4:
-                cache_delete(cache);
-                cache = cache_create();
+                hashtable_delete(cache);
+                cache = hashtable_create();
                 break;
             case 5:
                 write_all_entries(cache);
@@ -82,6 +82,6 @@ int main() {
                 break;
         }
     }
-    cache_delete(cache);
+    hashtable_delete(cache);
     return 0;
 }

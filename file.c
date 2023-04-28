@@ -3,31 +3,27 @@
 #include <stdio.h>
 #include <string.h>
 
-char* search_ip_file(Cache* cache, const char* filename, const char* dns) {
-    // Search for the IP address in the file
+void search_ip_file(HashTable* cache, const char* filename, const char* dns) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
         printf("Error: Could not open file %s\n", filename);
-        return NULL;
+        return;
     }
     char line[256];
     while (fgets(line, sizeof(line), file) != NULL) {
         char* found_dns = strtok(line, " \n");
         if (strcmp(found_dns, dns) == 0) {
-            // IP address found, add to cache and return
             char* ip = strtok(NULL, " \n");
-            cache_add(cache, dns, ip);
-            fclose(file);
-            return strdup(ip);
+            hashtable_add(cache, dns, ip);
         }
     }
     fclose(file);
-    return NULL;
+    return;
 }
 
 
 
-void print_dns_names_by_ip(Cache* cache, const char* ip_address, const char* filename) {
+void print_dns_names_by_ip(HashTable* cache, const char* ip_address, const char* filename) {
     /*CacheEntry* current = cache->head;
     while (current != NULL) {
         if (strstr(current->value, ip_address) != NULL) {
@@ -71,20 +67,17 @@ int is_valid_ip(const char* ip) {
 }
 
 void add_dns_entry(const char* filename, const char* dns_name, const char* ip_address) {
-    // Check if the IP address is valid
     if(is_valid_ip(ip_address) == 0) {
         printf("Invalid IP Address\n");
         return;
     }
 
-    // Open the DNS file for reading and writing
     FILE* file = fopen(filename, "r+");
     if (file == NULL) {
         printf("Error: could not open file '%s'\n", filename);
         return;
     }
 
-    // Check if the IP address is already in the file
     char line[1024];
     char* current_dns;
     while (fgets(line, sizeof(line), file) != NULL) {
@@ -96,7 +89,6 @@ void add_dns_entry(const char* filename, const char* dns_name, const char* ip_ad
         }
     }
 
-    // IP address is not in file, add the new entry to the end of the file
     fseek(file, 0, SEEK_END);
     fprintf(file, "\n%s %s", dns_name, ip_address);
     fclose(file);
