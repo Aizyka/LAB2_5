@@ -22,7 +22,7 @@ void get_all_ip(HashTable* cache) {
     char* ip = NULL;
     printf("Write IP: ");
     scanf("%s", ip);
-    print_dns_names_by_ip(cache,ip,"dns.txt");
+    print_dns_names_by_ip(ip,"dns.txt");
 }
 
 void write_all_entries(HashTable* cache) {
