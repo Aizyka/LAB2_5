@@ -11,9 +11,10 @@ void search_ip_file(HashTable* cache, const char* filename, const char* dns) {
     }
     char line[256];
     while (fgets(line, sizeof(line), file) != NULL) {
-        char* found_dns = strtok(line, " \n");
+        char* savePtr;
+        const char* found_dns = strtok_r(line, " \n", &savePtr);
         if (strcmp(found_dns, dns) == 0) {
-            char* ip = strtok(NULL, " \n");
+            const char* ip = strtok_r(NULL, " \n", &savePtr);
             hashtable_add(cache, dns, ip);
         }
     }
@@ -32,7 +33,7 @@ void print_dns_names_by_ip(const char* ip_address, const char* filename) {
     while (fgets(line, sizeof(line), file) != NULL) {
         char* savePtr = NULL;
         char* found_dns = strtok_r(line, " \n", &savePtr);
-        char* ip = strtok_r(NULL, " \n", &savePtr);
+        const char* ip = strtok_r(NULL, " \n", &savePtr);
         if (strcmp(ip, ip_address) == 0) {
             printf("%s\n", found_dns);
         }
@@ -41,7 +42,8 @@ void print_dns_names_by_ip(const char* ip_address, const char* filename) {
 }
 
 int is_valid_ip(const char* ip) {
-    int octet = 0, num_octets = 0;
+    int octet = 0;
+    int num_octets = 0;
     char* line = strdup(ip);
     char* savePtr = NULL;
     char* ptr = strtok_r(line, ".\n", &savePtr);
@@ -56,6 +58,7 @@ int is_valid_ip(const char* ip) {
     if (num_octets != 4) {
         return 0;
     }
+    free(line);
     free(ptr);
     return 1;
 }
@@ -73,10 +76,9 @@ void add_dns_entry(const char* filename, const char* dns_name, const char* ip_ad
     }
 
     char line[1024];
-    char* current_dns;
     while (fgets(line, sizeof(line), file) != NULL) {
         char* savePtr = NULL;
-        current_dns = strtok_r(line, " ", &savePtr);
+        const char* current_dns = strtok_r(line, " ", &savePtr);
         if (strcmp(current_dns, dns_name) == 0) {
             printf("Error: IP address '%s' already exists in file\n", dns_name);
             fclose(file);

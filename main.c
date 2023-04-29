@@ -8,7 +8,7 @@ void find_ip(HashTable* cache) {
     hashtable_lookup(cache, dns);
 }
 
-void add_ip(HashTable* cache) {
+void add_ip() {
     char* dns = NULL;
     char* ip = NULL;
     printf("Write DNS: ");
@@ -18,14 +18,14 @@ void add_ip(HashTable* cache) {
     add_dns_entry("dns.txt", dns, ip);
 }
 
-void get_all_ip(HashTable* cache) {
+void get_all_ip() {
     char* ip = NULL;
     printf("Write IP: ");
     scanf("%s", ip);
     print_dns_names_by_ip(ip,"dns.txt");
 }
 
-void write_all_entries(HashTable* cache) {
+void write_all_entries(const HashTable* cache) {
 
     printf("\n");
     HashEntry * current = NULL;
@@ -57,10 +57,10 @@ int main() {
                 find_ip(cache);
                 break;
             case 2:
-                add_ip(cache);
+                add_ip();
                 break;
             case 3:
-                get_all_ip(cache);
+                get_all_ip();
                 break;
             case 4:
                 hashtable_delete(cache);
