@@ -21,7 +21,7 @@ void hashtable_delete(HashTable* table);
 void hashtable_lookup(HashTable* table, const char* key);
 void hashtable_add(HashTable* table, const char* key, const char* value);
 void add_dns_entry(const char* filename, const char* dns_name, const char* ip_address);
-void search_ip_file(HashTable* cache, const char* filename, const char* dns);
+void search_ip_file(HashTable* cache, const char* filename, const char* dns, const char* head);
 void print_dns_names_by_ip(const char* ip_address, const char* filename);
 int is_valid_ip(const char* ip);
 #endif //APP_HEADER_H

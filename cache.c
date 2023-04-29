@@ -46,12 +46,7 @@ int internal_lookup(HashTable* table, const char* key) {
     HashEntry* prev = NULL;
     while (current != NULL) {
         if (strcmp(current->key, key) == 0) {
-            if (is_valid_ip(current->value) == 1) {
-                printf("Found IP: %s\n", current->value);
-            } else {
-                hashtable_lookup(table, current->value);
-            }
-            // move the found element to the beginning
+            printf("Found IP: %s\n", current->value);
             if (prev != NULL) {
                 prev->next = current->next;
                 if (current->next != NULL) {
@@ -62,7 +57,6 @@ int internal_lookup(HashTable* table, const char* key) {
                 table->table[index]->prev = current;
                 table->table[index] = current;
             }
-            // shift the remaining elements to the right
             HashEntry* next = current->next;
             while (next != NULL) {
                 next->prev = next->prev == current ? NULL : current;
@@ -81,9 +75,8 @@ int internal_lookup(HashTable* table, const char* key) {
 }
 
 void hashtable_lookup(HashTable* table, const char* key) {
-
     if(internal_lookup(table,key) == 0) {
-        search_ip_file(table, "dns.txt", key);
+        search_ip_file(table, "dns.txt", key, NULL);
     }
     else{
         return;
@@ -102,7 +95,7 @@ void hashtable_add(HashTable* table, const char* key, const char* value) {
         while(current != NULL) {
             count++;
             if(count >= MAX_CACHE_SIZE-1 && current->next != NULL) {
-                printf("REMOVING: %s\n", current->next->value);
+                printf("REMOVING: %s\n", current->next->key);
                 free(current->next);
                 current->next = NULL;
                 break;

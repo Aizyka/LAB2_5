@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
-void search_ip_file(HashTable* cache, const char* filename, const char* dns) {
+void search_ip_file(HashTable* cache, const char* filename, const char* dns, const char* head) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
         printf("Error: Could not open file %s\n", filename);
@@ -15,12 +15,34 @@ void search_ip_file(HashTable* cache, const char* filename, const char* dns) {
         const char* found_dns = strtok_r(line, " \n", &savePtr);
         if (strcmp(found_dns, dns) == 0) {
             const char* ip = strtok_r(NULL, " \n", &savePtr);
-            hashtable_add(cache, dns, ip);
+            if(is_valid_ip(ip) == 0) {
+                fclose(file);
+                search_ip_file(cache,filename, ip, found_dns);
+            }
+            else if(head != NULL)
+                hashtable_add(cache, head, ip);
+            else
+                hashtable_add(cache, dns, ip);
         }
     }
     fclose(file);
 }
 
+void print_dns(const char* ip_address, FILE* file) {
+    char line[256];
+    rewind(file);
+    while (fgets(line, sizeof(line), file) != NULL) {
+        char* savePtr = NULL;
+        char* found_dns = strtok_r(line, " \n", &savePtr);
+        const char* ip = strtok_r(NULL, " \n", &savePtr);
+        if (strcmp(ip, ip_address) == 0) {
+            printf("%s\n", found_dns);
+            long pos = ftell(file);
+            print_dns(found_dns, file);
+            fseek(file, pos, SEEK_SET);
+        }
+    }
+}
 
 
 void print_dns_names_by_ip(const char* ip_address, const char* filename) {
@@ -29,15 +51,7 @@ void print_dns_names_by_ip(const char* ip_address, const char* filename) {
         printf("Error: Could not open file %s\n", filename);
         return;
     }
-    char line[256];
-    while (fgets(line, sizeof(line), file) != NULL) {
-        char* savePtr = NULL;
-        char* found_dns = strtok_r(line, " \n", &savePtr);
-        const char* ip = strtok_r(NULL, " \n", &savePtr);
-        if (strcmp(ip, ip_address) == 0) {
-            printf("%s\n", found_dns);
-        }
-    }
+    print_dns(ip_address, file);
     fclose(file);
 }
 
