@@ -17,7 +17,7 @@ unsigned int hash_function(const char* key, int table_size) {
 
 HashTable* hashtable_create() {
     HashTable* table = malloc(sizeof(HashTable));
-    table->size = MAX_CACHE_SIZE;
+    table->size = MAX_HASH_SIZE;
     table->table = malloc(sizeof(HashEntry*) * table->size);
     for (int i = 0; i < table->size; i++) {
         table->table[i] = NULL;
@@ -41,20 +41,43 @@ void hashtable_delete(HashTable* table) {
 }
 
 int internal_lookup(HashTable* table, const char* key) {
-    int founded = 0;
     unsigned int index = hash_function(key, table->size);
     HashEntry* current = table->table[index];
+    HashEntry* prev = NULL;
     while (current != NULL) {
         if (strcmp(current->key, key) == 0) {
-            if(is_valid_ip(current->value) == 1)
+            if (is_valid_ip(current->value) == 1) {
                 printf("Found IP: %s\n", current->value);
-            else
+            } else {
                 hashtable_lookup(table, current->value);
-            founded = 1;
+            }
+            // move the found element to the beginning
+            if (prev != NULL) {
+                prev->next = current->next;
+                if (current->next != NULL) {
+                    current->next->prev = prev;
+                }
+                current->prev = NULL;
+                current->next = table->table[index];
+                table->table[index]->prev = current;
+                table->table[index] = current;
+            }
+            // shift the remaining elements to the right
+            HashEntry* next = current->next;
+            while (next != NULL) {
+                next->prev = next->prev == current ? NULL : current;
+                current->next = next;
+                current->prev = prev;
+                prev = current;
+                current = next;
+                next = next->next;
+            }
+            return 1;
         }
+        prev = current;
         current = current->next;
     }
-    return founded;
+    return 0;
 }
 
 void hashtable_lookup(HashTable* table, const char* key) {
@@ -73,6 +96,20 @@ void hashtable_add(HashTable* table, const char* key, const char* value) {
     HashEntry* entry = malloc(sizeof(HashEntry));
     entry->key = strdup(key);
     entry->value = strdup(value);
+    int count = 0;
+    if(table->table[index] != NULL) {
+        HashEntry* current = table->table[index];
+        while(current != NULL) {
+            count++;
+            if(count >= MAX_CACHE_SIZE-1 && current->next != NULL) {
+                printf("REMOVING: %s\n", current->next->value);
+                free(current->next);
+                current->next = NULL;
+                break;
+            }
+            current = current->next;
+        }
+    }
     entry->prev = NULL;
     entry->next = table->table[index];
     if (table->table[index] != NULL) {

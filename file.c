@@ -52,14 +52,12 @@ int is_valid_ip(const char* ip) {
         octet = atoi(ptr);
         if (octet < 0 || octet > 255 || (num_octets == 1 && octet == 0)) {
             free(line);
-            free(ptr);
             return 0;
         }
         ptr = strtok_r(NULL, ".\n", &savePtr);
     }
     if (num_octets != 4) {
         free(line);
-        free(ptr);
         return 0;
     }
     free(line);

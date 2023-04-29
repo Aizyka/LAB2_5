@@ -1,6 +1,7 @@
 #ifndef APP_HEADER_H
 #define APP_HEADER_H
-#define MAX_CACHE_SIZE 1000
+#define MAX_HASH_SIZE 2
+#define MAX_CACHE_SIZE 2
 
 typedef struct HashEntry {
     char* key;
